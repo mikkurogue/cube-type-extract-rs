@@ -18,12 +18,12 @@ pub struct Prefix {
 
 pub fn generate_default_config() {
     let default_config = Configuration {
-        cube_url: "http://localhost:4000/cubejs.api".to_owned(),
-        output: "./".to_owned(),
-        file_name: "cubejs-types".to_owned(),
+        cube_url: "http://localhost:4000/cubejs.api".to_string(),
+        output: "./".to_string(),
+        file_name: "cubejs-types".to_string(),
         prefixes: vec![Prefix {
-            name: "Placeholder".to_owned(),
-            prefix: "Main".to_owned(),
+            name: "Placeholder".to_string(),
+            prefix: "Main".to_string(),
         }],
         ignore_error_cube: true,
     };
