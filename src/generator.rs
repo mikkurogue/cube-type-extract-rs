@@ -1,16 +1,19 @@
 use std::collections::HashSet;
 
 use colored::Colorize;
+use serde::{Deserialize, Serialize};
 
 pub struct Generator {
     pub cube_count: usize,
-    pub metadata: Metadata,
+    pub metadata: Option<Metadata>,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct Metadata {
-    pub cube: Vec<Cube>,
+    pub cubes: Vec<Cube>,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct Cube {
     pub name: String,
     pub dimensions: Vec<String>,
@@ -27,8 +30,26 @@ pub struct FieldSet {
 }
 
 impl Generator {
-    pub fn fetch_metadata(&self, cube_url: String) {
-        // TODO:
+    pub fn fetch_metadata(&mut self, cube_url: String) {
+        let resp = match fetch_cube_metadata(&cube_url) {
+            Ok(resp) => resp,
+            Err(err) => {
+                eprintln!("{} {}", "Error fetching cube metadata: ".red(), err);
+                std::process::exit(0);
+            }
+        };
+
+        self.metadata = match serde_json::from_slice(&resp) {
+            Ok(metadata) => Some(metadata),
+            Err(err) => {
+                eprintln!("{} {}", "Error parsing cube metadata: ".red(), err);
+                std::process::exit(1);
+            }
+        };
+
+        if let Some(metadata) = &self.metadata {
+            self.cube_count = metadata.cubes.len();
+        }
     }
 
     pub fn generate(&self, output_dir: String, file_name: String, skip_errors: bool) {
@@ -36,9 +57,21 @@ impl Generator {
     }
 }
 
-fn fetch_cube_metadata(cube_url: String) -> Result<Vec<u8>, std::io::Error> {
-    // TODO: implement func
-    Ok(vec![])
+#[tokio::main]
+async fn fetch_cube_metadata(cube_url: &str) -> Result<Vec<u8>, reqwest::Error> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/v1/meta", cube_url);
+
+    let body = client
+        .get(&url)
+        .send()
+        .await?
+        .error_for_status()? // check for http errors
+        .bytes()
+        .await?
+        .to_vec();
+
+    Ok(body)
 }
 
 fn extract_name(full_name: &str) -> String {
