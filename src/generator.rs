@@ -41,21 +41,13 @@ impl Generator {
             }
         };
 
-        println!("{:?}", resp);
+        println!(
+            "{} {:?}",
+            "Successfully fetched cube metadata!".green(),
+            resp.cubes[0].name
+        );
 
-        // let raw_cube_meta = match serde_json::from_slice(&resp) {
-        //     Ok(json) => json,
-        //     Err(err) => {
-        //         eprintln!("{} {}", "Error parsing cube metadata: ".red(), err);
-        //         std::process::exit(1);
-        //     }
-        // };
-        //
-        // println!("{:?}", raw_cube_meta);
-
-        if let Some(metadata) = &self.metadata {
-            self.cube_count = metadata.cubes.len();
-        }
+        self.cube_count = resp.cubes.len();
     }
 
     pub fn generate(&self, output_dir: String, file_name: String, skip_errors: bool) {

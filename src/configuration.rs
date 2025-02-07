@@ -18,7 +18,7 @@ pub struct Prefix {
 
 pub fn generate_default_config() {
     let default_config = Configuration {
-        cube_url: "http://localhost:4000/cubejs.api".to_string(),
+        cube_url: "http://localhost:4000/cubejs-api".to_string(),
         output: "./".to_string(),
         file_name: "cubejs-types".to_string(),
         prefixes: vec![Prefix {

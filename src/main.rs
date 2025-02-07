@@ -11,5 +11,5 @@ fn main() {
 
     let res = generator.fetch_metadata("http://localhost:4000/cubejs-api".to_string());
 
-    println!("{:?}", res);
+    println!("{:?}", generator.cube_count);
 }
