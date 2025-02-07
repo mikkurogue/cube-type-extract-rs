@@ -1,4 +1,3 @@
-use configuration::Configuration;
 use generator::{Generator, Metadata};
 
 mod configuration;
@@ -22,10 +21,7 @@ fn main() {
         }
     };
 
-    // make sure to use config.output on real implementatin
-    println!("{:?}", config.output);
+    let _ = generator.fetch_metadata(config.cube_url);
 
-    let res = generator.fetch_metadata("http://localhost:4000/cubejs-api".to_string());
-
-    generator.generate("./".to_string(), "cubejs-types".to_string(), true);
+    generator.generate(config.output, config.file_name, true);
 }

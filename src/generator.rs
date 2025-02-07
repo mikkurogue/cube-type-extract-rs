@@ -195,20 +195,3 @@ fn join_union_fields(items: Vec<String>) -> String {
     let unique_items: HashSet<String> = items.into_iter().collect();
     unique_items.into_iter().collect::<Vec<_>>().join(" | ")
 }
-
-fn capitalize(s: &str) -> String {
-    let mut chars = s.chars();
-    chars.next().map_or_else(String::new, |c| {
-        c.to_uppercase().collect::<String>() + chars.as_str()
-    })
-}
-
-fn contains_ignore_case(input: &str, sub_string: &str) -> bool {
-    return input.to_lowercase().contains(&sub_string.to_lowercase());
-}
-
-fn skip(name: &str, check_case: &str) {
-    if contains_ignore_case(name, check_case) {
-        println!("{}", "Skipping cube due to ignore case match".yellow());
-    }
-}
