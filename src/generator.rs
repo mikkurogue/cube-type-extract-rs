@@ -89,16 +89,32 @@ fn process_cube(cube: &Cube) {
         }
     };
 
-    extract_to_union(dimensions);
-    extract_to_union(measures);
+    let dimension_union = extract_to_union(dimensions);
+    let measure_union = extract_to_union(measures);
+    println!(
+        "{} dimensions == {}",
+        cube.name.blue(),
+        dimension_union.green()
+    );
+    println!("{} measures == {}", cube.name.blue(), measure_union.red());
 }
 
-fn extract_to_union(fields: &[FieldSet]) {
-    for field in fields {
-        let field_name = extract_name(&field.name);
+fn extract_to_union(fields: &[FieldSet]) -> String {
+    let mut items: Vec<String> = Vec::new();
 
-        println!("{}", field_name.yellow());
+    for field in fields {
+        if let Some(meta) = &field.meta {
+            if let Some(extractable) = meta.extractable {
+                if extractable {
+                    let field_name = extract_name(&field.name);
+
+                    items.push(field_name);
+                }
+            }
+        }
     }
+
+    join_union_fields(items)
 }
 
 #[tokio::main]
@@ -126,12 +142,9 @@ fn extract_name(full_name: &str) -> String {
     full_name.split('.').last().unwrap().to_string()
 }
 
-fn join_union_fields(items: Vec<String>) -> Vec<String> {
-    let mut unique_items: HashSet<String> = HashSet::new();
-    items.into_iter().for_each(|item| {
-        unique_items.insert(item);
-    });
-    unique_items.into_iter().collect()
+fn join_union_fields(items: Vec<String>) -> String {
+    let unique_items: HashSet<String> = items.into_iter().collect();
+    unique_items.into_iter().collect::<Vec<_>>().join(" | ")
 }
 
 fn capitalize(s: &str) -> String {
