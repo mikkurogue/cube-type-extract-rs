@@ -103,14 +103,9 @@ fn extract_to_union(fields: &[FieldSet]) -> String {
     let mut items: Vec<String> = Vec::new();
 
     for field in fields {
-        if let Some(meta) = &field.meta {
-            if let Some(extractable) = meta.extractable {
-                if extractable {
-                    let field_name = extract_name(&field.name);
-
-                    items.push(field_name);
-                }
-            }
+        if let Some(true) = field.meta.as_ref().and_then(|meta| meta.extractable) {
+            let field_name = extract_name(&field.name);
+            items.push(field_name);
         }
     }
 
