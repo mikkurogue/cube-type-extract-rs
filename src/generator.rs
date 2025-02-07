@@ -41,13 +41,8 @@ impl Generator {
             }
         };
 
-        println!(
-            "{} {:?}",
-            "Successfully fetched cube metadata!".green(),
-            resp.cubes[0].name
-        );
-
         self.cube_count = resp.cubes.len();
+        self.metadata = Some(resp);
     }
 
     pub fn generate(&self, output_dir: String, file_name: String, skip_errors: bool) {
