@@ -10,9 +10,20 @@ fn main() {
         metadata: Some(Metadata { cubes: vec![] }),
     };
 
-    if configuration::validate_configuration() {
-        println!("We have config")
+    if !configuration::validate_configuration() {
+        configuration::generate_default_config();
     }
+
+    let config = match configuration::read() {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
+    };
+
+    // make sure to use config.output on real implementatin
+    println!("{:?}", config.output);
 
     let res = generator.fetch_metadata("http://localhost:4000/cubejs-api".to_string());
 

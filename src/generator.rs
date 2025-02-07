@@ -91,12 +91,12 @@ fn process_cube(cube: &Cube) {
 
     let dimension_union = extract_to_union(dimensions);
     let measure_union = extract_to_union(measures);
-    println!(
-        "{} dimensions == {}",
-        cube.name.blue(),
-        dimension_union.green()
-    );
-    println!("{} measures == {}", cube.name.blue(), measure_union.red());
+    // println!(
+    //     "{} dimensions == {}",
+    //     cube.name.blue(),
+    //     dimension_union.green()
+    // );
+    // println!("{} measures == {}", cube.name.blue(), measure_union.red());
 }
 
 fn extract_to_union(fields: &[FieldSet]) -> String {

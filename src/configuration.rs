@@ -1,16 +1,15 @@
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Configuration {
     pub cube_url: String,
     pub output: String,
     pub file_name: String,
     pub prefixes: Vec<Prefix>,
-    pub ignore_error_cube: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Prefix {
     pub name: String,
     pub prefix: String,
@@ -25,7 +24,6 @@ pub fn generate_default_config() {
             name: "Placeholder".to_string(),
             prefix: "Main".to_string(),
         }],
-        ignore_error_cube: true,
     };
 
     let json_data = match serde_json::to_string_pretty(&default_config) {
@@ -45,7 +43,7 @@ pub fn generate_default_config() {
 
     println!(
         "{}",
-        "Successfully created the default configuration file!".green()
+        "Successfully created the default configuration file! Apply your necessary changes and run again".green()
     );
 }
 
