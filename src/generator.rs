@@ -122,6 +122,8 @@ impl Generator {
         let _ = output.push_str(&format!("{}\n", cube_all_measures_ts_type));
 
         let _ = write_to_file(&output_dir, &file_name, &output);
+
+        println!("{}", "Complete".green())
     }
 }
 
