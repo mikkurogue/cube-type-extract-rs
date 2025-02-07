@@ -1,6 +1,5 @@
 use colored::Colorize;
-use serde::{Deserialize, Serialize};
-use std::fmt::Write;
+use serde::Deserialize;
 
 use std::{collections::HashSet, str};
 
@@ -48,7 +47,7 @@ impl Generator {
         self.metadata = Some(resp);
     }
 
-    pub fn generate(&self, output_dir: String, file_name: String, skip_errors: bool) {
+    pub fn generate(&self, output_dir: String, file_name: String, _skip_errors: bool) {
         let config = match configuration::read() {
             Ok(c) => c,
             Err(e) => {
@@ -75,32 +74,33 @@ impl Generator {
 
         for cube in &metadata.cubes {
             // skip a cube that contains the word Error
-            if !cube.name.contains("Error") {
-                if let Some(union) = process_cube(cube) {
-                    let mut cube_name = "";
-
-                    for prefix in &config.prefixes {
-                        if prefix.name == cube.name {
-                            cube_name = &prefix.prefix;
-                        }
-                    }
-
-                    let cube_union_ts_dimension_type =
-                        format!("export type {}Dimensions = {}", cube_name, union.dimensions);
-
-                    let cube_union_ts_measure_type =
-                        format!("export type {}Measures = {}", cube_name, union.measures);
-
-                    let _ = output.push_str(&format!("{}\n", cube_union_ts_dimension_type));
-                    let _ = output.push_str(&format!("{}\n", cube_union_ts_measure_type));
-
-                    all_dimension_types.push(union.dimensions);
-                    all_measure_types.push(union.measures)
-                } else {
-                    // handle the case where the union is empty
-                }
+            if cube.name.contains("Error") {
+                continue;
             }
-            continue;
+
+            if let Some(union) = process_cube(cube) {
+                let mut cube_name = "";
+
+                for prefix in &config.prefixes {
+                    if prefix.name == cube.name {
+                        cube_name = &prefix.prefix;
+                    }
+                }
+
+                let cube_union_ts_dimension_type =
+                    format!("export type {}Dimensions = {}", cube_name, union.dimensions);
+
+                let cube_union_ts_measure_type =
+                    format!("export type {}Measures = {}", cube_name, union.measures);
+
+                let _ = output.push_str(&format!("{}\n", cube_union_ts_dimension_type));
+                let _ = output.push_str(&format!("{}\n", cube_union_ts_measure_type));
+
+                all_dimension_types.push(union.dimensions);
+                all_measure_types.push(union.measures)
+            } else {
+                // handle the case where the union is empty though this shouldnt really happen
+            }
         }
 
         // Figure out how to iterate to add the vector to the string
