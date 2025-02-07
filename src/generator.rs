@@ -103,8 +103,6 @@ impl Generator {
             }
         }
 
-        // Figure out how to iterate to add the vector to the string
-
         let cube_all_dimensions_ts_type = format!(
             "export type AllDimensions = {}",
             join_union_fields(all_dimension_types)
