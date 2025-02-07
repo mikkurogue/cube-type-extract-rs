@@ -1,2 +1,3 @@
 /target
 type-gen-config.json
+cubejs-types.ts
