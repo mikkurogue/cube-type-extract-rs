@@ -96,16 +96,30 @@ impl Generator {
                 let _ = output.push_str(&format!("{}\n", cube_union_ts_dimension_type));
                 let _ = output.push_str(&format!("{}\n", cube_union_ts_measure_type));
 
-                all_dimension_types.push(union.dimensions);
-                all_measure_types.push(union.measures)
+                all_dimension_types.extend(union.dimensions.split(" | ").map(String::from));
+                all_measure_types.extend(union.measures.split(" | ").map(String::from));
             } else {
                 // handle the case where the union is empty though this shouldnt really happen
             }
         }
 
         // Figure out how to iterate to add the vector to the string
-        // let cube_all_dimensions_ts_type = format!("export type AllDimensions", );
-        // let cube_all_measures_ts_type = format!("export type AllMeasures", );
+
+        let cube_all_dimensions_ts_type = format!(
+            "export type AllDimensions = {}",
+            join_union_fields(all_dimension_types)
+        );
+        let cube_all_measures_ts_type = format!(
+            "export type AllMeasures = {}",
+            join_union_fields(all_measure_types)
+        );
+
+        let _ = output.push_str(&format!(
+            "// !! All dimensions and measures for all cubes !!\n"
+        ));
+
+        let _ = output.push_str(&format!("{}\n", cube_all_dimensions_ts_type));
+        let _ = output.push_str(&format!("{}\n", cube_all_measures_ts_type));
 
         let _ = write_to_file(&output_dir, &file_name, &output);
     }
