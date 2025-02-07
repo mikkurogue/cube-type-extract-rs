@@ -11,6 +11,8 @@ fn main() {
 
     if !configuration::validate_configuration() {
         configuration::generate_default_config();
+        // Exit the program after generating the default configuration
+        std::process::exit(0);
     }
 
     let config = match configuration::read() {
