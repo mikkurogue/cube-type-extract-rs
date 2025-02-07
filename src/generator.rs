@@ -73,7 +73,7 @@ async fn fetch_cube_metadata(cube_url: &str) -> Result<Metadata, Box<dyn std::er
 }
 
 fn extract_name(full_name: &str) -> String {
-    "".to_string()
+    full_name.split('.').last().unwrap().to_string()
 }
 
 fn join_union_fields(items: Vec<String>) -> Vec<String> {
