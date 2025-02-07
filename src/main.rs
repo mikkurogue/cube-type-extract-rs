@@ -1,3 +1,4 @@
+use configuration::Configuration;
 use generator::{Generator, Metadata};
 
 mod configuration;
@@ -9,7 +10,11 @@ fn main() {
         metadata: Some(Metadata { cubes: vec![] }),
     };
 
+    if configuration::validate_configuration() {
+        println!("We have config")
+    }
+
     let res = generator.fetch_metadata("http://localhost:4000/cubejs-api".to_string());
 
-    println!("{:?}", generator.metadata);
+    generator.generate("./".to_string(), "cubejs-types".to_string(), true);
 }
