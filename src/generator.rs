@@ -16,17 +16,19 @@ pub struct Metadata {
 #[derive(Debug, Deserialize)]
 pub struct Cube {
     pub name: String,
-    pub dimensions: Vec<String>,
-    pub measures: Vec<String>,
+    pub dimensions: Option<Vec<FieldSet>>,
+    pub measures: Option<Vec<FieldSet>>,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct Meta {
-    pub extractable: bool,
+    pub extractable: Option<bool>,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct FieldSet {
     pub name: String,
-    pub meta: Meta,
+    pub meta: Option<Meta>,
 }
 
 impl Generator {
@@ -39,13 +41,17 @@ impl Generator {
             }
         };
 
-        self.metadata = match serde_json::from_slice(&resp) {
-            Ok(metadata) => Some(metadata),
-            Err(err) => {
-                eprintln!("{} {}", "Error parsing cube metadata: ".red(), err);
-                std::process::exit(1);
-            }
-        };
+        println!("{:?}", resp);
+
+        // let raw_cube_meta = match serde_json::from_slice(&resp) {
+        //     Ok(json) => json,
+        //     Err(err) => {
+        //         eprintln!("{} {}", "Error parsing cube metadata: ".red(), err);
+        //         std::process::exit(1);
+        //     }
+        // };
+        //
+        // println!("{:?}", raw_cube_meta);
 
         if let Some(metadata) = &self.metadata {
             self.cube_count = metadata.cubes.len();
@@ -58,7 +64,7 @@ impl Generator {
 }
 
 #[tokio::main]
-async fn fetch_cube_metadata(cube_url: &str) -> Result<Vec<u8>, reqwest::Error> {
+async fn fetch_cube_metadata(cube_url: &str) -> Result<Metadata, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v1/meta", cube_url);
 
@@ -67,11 +73,16 @@ async fn fetch_cube_metadata(cube_url: &str) -> Result<Vec<u8>, reqwest::Error> 
         .send()
         .await?
         .error_for_status()? // check for http errors
-        .bytes()
-        .await?
-        .to_vec();
+        .text()
+        .await?;
 
-    Ok(body)
+    let metadata: Metadata = serde_json::from_str(&body).map_err(|e| {
+        eprintln!("Error decoding response: {}", e);
+        eprintln!("Raw JSON Response: {}", body);
+        e
+    })?;
+
+    Ok(metadata)
 }
 
 fn extract_name(full_name: &str) -> String {
