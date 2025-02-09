@@ -90,10 +90,10 @@ impl Generator {
                         let cube_union_ts_measure_type =
                             format!("export type {}Measures = {}", prefix.prefix, union.measures);
 
-                        let _ = output.push_str(&format!("{}", cube_union_ts_dimension_type));
-                        let _ = output.push_str(&format!("\n"));
-                        let _ = output.push_str(&format!("{}\n", cube_union_ts_measure_type));
-                        let _ = output.push_str(&format!("\n"));
+                        _ = output.push_str(&format!("{}", cube_union_ts_dimension_type));
+                        _ = output.push_str(&format!("\n"));
+                        _ = output.push_str(&format!("{}\n", cube_union_ts_measure_type));
+                        _ = output.push_str(&format!("\n"));
                     }
                 }
 
@@ -104,24 +104,24 @@ impl Generator {
             }
         }
 
-        let _ = output.push_str(&format!(
+        _ = output.push_str(&format!(
             "// !! All dimensions and measures for all cubes !!\n"
         ));
-        let _ = output.push('\n');
+        _ = output.push('\n');
 
-        let _ = output.push_str(&format!(
+        _ = output.push_str(&format!(
             "export type AllDimensions = {}",
             join_union_fields(all_dimension_types)
         ));
-        let _ = output.push('\n');
+        _ = output.push('\n');
 
-        let _ = output.push_str(&format!(
+        _ = output.push_str(&format!(
             "export type AllMeasures = {}",
             join_union_fields(all_measure_types)
         ));
-        let _ = output.push('\n');
+        _ = output.push('\n');
 
-        let _ = write_to_file(&output_dir, &file_name, &output);
+        _ = write_to_file(&output_dir, &file_name, &output);
 
         println!("{}", "Complete".green())
     }
