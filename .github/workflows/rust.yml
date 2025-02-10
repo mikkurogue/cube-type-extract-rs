@@ -17,10 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --verbose --release
     - name: Run tests
       run: cargo test --verbose
-    - name: Rust Release binary
-      uses: rust-build/rust-build.action@v1.4.5
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
