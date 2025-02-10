@@ -1,5 +1,5 @@
 # Cube Type Extractor - rs
-![build](https://github.com/mikkurogue/cube-type-extract-rs/actions/workflows/rust.yml/badge.svg)
+![build](https://github.com/mikkurogue/cube-type-extract-rs/actions/workflows/rust.yml/badge.svg) ![build](https://github.com/mikkurogue/cube-type-extract-rs/actions/workflows/rust-clippy.yml/badge.svg)
 
 This is the Rust rewrite of the [Cube Type Extractor](https://github.com/mikkurogue/cube-type-extract) project that was initially written in Go.
 
