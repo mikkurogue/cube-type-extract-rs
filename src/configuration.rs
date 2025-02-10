@@ -34,9 +34,7 @@ pub fn generate_default_config() {
         }
     };
 
-    let filename = "type-gen-config.json";
-
-    if let Err(err) = std::fs::write(filename, json_data) {
+    if let Err(err) = std::fs::write("type-gen-config.json", json_data) {
         eprintln!("{} {}", "Could not write to file: ".red(), err);
         std::process::exit(1);
     }

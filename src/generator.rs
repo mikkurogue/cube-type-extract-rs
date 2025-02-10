@@ -38,7 +38,7 @@ impl Generator {
         let resp = match fetch_cube_metadata(&cube_url) {
             Ok(resp) => resp,
             Err(err) => {
-                eprintln!("{} {}", "Error fetching cube metadata: ".red(), err);
+                eprintln!("{} {}", "Error: could not fetch cube metadata: ".red(), err);
                 std::process::exit(0);
             }
         };
@@ -51,7 +51,11 @@ impl Generator {
         let config = match configuration::read() {
             Ok(c) => c,
             Err(e) => {
-                eprintln!("Error: {}", e);
+                eprintln!(
+                    "{} {}",
+                    "Error: Could not read the configuration file: ".red(),
+                    e
+                );
                 return;
             }
         };
@@ -82,23 +86,27 @@ impl Generator {
             if let Some(union) = process_cube(cube) {
                 for prefix in &config.prefixes {
                     if prefix.name == cube.name {
+                        let dimension_type_name = format!("{}Dimensions", prefix.prefix);
+                        let measure_type_name = format!("{}Measures", prefix.prefix);
+
                         _ = output.push('\n');
                         _ = output.push_str(&format!(
-                            "export type {}Dimensions = {}",
-                            prefix.prefix, union.dimensions
+                            "export type {} = {}",
+                            dimension_type_name, union.dimensions
                         ));
 
                         _ = output.push('\n');
                         _ = output.push_str(&format!(
-                            "export type {}Measures = {}",
-                            prefix.prefix, union.measures
+                            "export type {} = {}",
+                            measure_type_name, union.measures
                         ));
                         _ = output.push('\n');
+
+                        all_dimension_types
+                            .extend(dimension_type_name.split(" | ").map(String::from));
+                        all_measure_types.extend(measure_type_name.split(" | ").map(String::from));
                     }
                 }
-
-                all_dimension_types.extend(union.dimensions.split(" | ").map(String::from));
-                all_measure_types.extend(union.measures.split(" | ").map(String::from));
             } else {
                 // handle the case where the union is empty though this shouldnt really happen
             }
