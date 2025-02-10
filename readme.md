@@ -9,7 +9,7 @@ This project will essentially be a 1 to 1 copy so the configuration, commands an
 
 ## Initial benchmark results
 
-![results](./assets/even faster.png)
+![results](./assets/results.png)
 
 As we can see from the results. The Rust version is around 37.5 times faster than the Go version
 
