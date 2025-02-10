@@ -1,7 +1,8 @@
 [package]
 name = "cube-type-extract-rs"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
+author = "mikkurogue"
 
 [dependencies]
 colored = "3.0.0"
