@@ -7,7 +7,11 @@ The reason for this rewrite is not because of the meme, but because it's a relat
 
 This project will essentially be a 1 to 1 copy so the configuration, commands and everything else should all be the same.
 
-I will eventually run benchmarks using [poop](https://github.com/andrewrk/poop) to compare the executions of both projects.
+## Initial benchmark results
+
+![results](./assets/even faster.png)
+
+As we can see from the results. The Rust version is around 37.5 times faster than the Go version
 
 ### Caveat
 
