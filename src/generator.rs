@@ -1,4 +1,5 @@
 use colored::Colorize;
+use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
 
 use std::{borrow::Cow, collections::HashSet, str};
@@ -77,11 +78,23 @@ impl Generator {
             }
         };
 
+        let pb = ProgressBar::new(metadata.cubes.len() as u64);
+
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template("{msg} [{bar:40.yellow}] {pos}/{len} {eta}")
+                .unwrap()
+                .progress_chars("▇▆▅▄▃▂ "),
+        );
+
         for cube in &metadata.cubes {
             // skip a cube that contains the word Error
             if cube.name.contains("Error") {
+                pb.set_message(format!("Skipping cube: {}", cube.name));
                 continue;
             }
+
+            pb.set_message(format!("Processing cube: {}", cube.name));
 
             if let Some(union) = process_cube(cube) {
                 for prefix in &config.prefixes {
@@ -105,6 +118,7 @@ impl Generator {
                         all_dimension_types
                             .extend(dimension_type_name.split(" | ").map(String::from));
                         all_measure_types.extend(measure_type_name.split(" | ").map(String::from));
+                        pb.inc(1);
                     }
                 }
             } else {
@@ -131,7 +145,7 @@ impl Generator {
 
         _ = write_to_file(&output_dir, &file_name, &output);
 
-        println!("{}", "Complete".green())
+        pb.finish_with_message("Task complete");
     }
 }
 
