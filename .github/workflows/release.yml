@@ -26,9 +26,9 @@ jobs:
       - name: Archive binary
         run: |
           mkdir -p artifacts
-          cp target/release/rmv artifacts/
-          tar -czvf artifacts/rmv-linux.tar.gz -C artifacts rmv
-          rm artifacts/rmv
+          cp target/release/cube-type-extract-rs artifacts/
+          tar -czvf artifacts/cube-type-extract-rs-linux.tar.gz -C artifacts cube-type-extract-rs
+          rm artifacts/cube-type-extract-rs
 
       - name: Create GitHub Release
         id: create_release
