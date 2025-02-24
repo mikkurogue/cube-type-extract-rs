@@ -3,7 +3,8 @@ use generator::{Generator, Metadata};
 mod configuration;
 mod generator;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut generator = Generator {
         cube_count: 0,
         metadata: Some(Metadata { cubes: vec![] }),
@@ -11,7 +12,6 @@ fn main() {
 
     if !configuration::validate_configuration() {
         configuration::generate_default_config();
-        // Exit the program after generating the default configuration
         std::process::exit(0);
     }
 
@@ -23,7 +23,11 @@ fn main() {
         }
     };
 
-    let _ = generator.fetch_metadata(config.cube_url);
+    // Await the async fetch_metadata method
+    generator.fetch_metadata(config.cube_url).await;
 
-    generator.generate(config.output, config.file_name, true);
+    // Await the async generate method
+    generator
+        .generate(config.output, config.file_name, true)
+        .await;
 }

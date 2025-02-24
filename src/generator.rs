@@ -1,6 +1,8 @@
 use colored::Colorize;
+use futures::stream::{FuturesUnordered, StreamExt};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
+use tokio::task;
 
 use std::{borrow::Cow, collections::HashSet, str};
 
@@ -23,20 +25,20 @@ pub struct Cube {
     pub measures: Option<Vec<FieldSet>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Meta {
     pub extractable: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct FieldSet {
     pub name: String,
     pub meta: Option<Meta>,
 }
 
 impl Generator {
-    pub fn fetch_metadata(&mut self, cube_url: String) {
-        let resp = match fetch_cube_metadata(&cube_url) {
+    pub async fn fetch_metadata(&mut self, cube_url: String) {
+        let resp = match fetch_cube_metadata(&cube_url).await {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("{} {}", "Error: could not fetch cube metadata: ".red(), err);
@@ -48,7 +50,7 @@ impl Generator {
         self.metadata = Some(resp);
     }
 
-    pub fn generate(&self, output_dir: String, file_name: String, _skip_errors: bool) {
+    pub async fn generate(&self, output_dir: String, file_name: String, _skip_errors: bool) {
         let config = match configuration::read() {
             Ok(c) => c,
             Err(e) => {
@@ -87,42 +89,57 @@ impl Generator {
                 .progress_chars("▇▆▅▄▃▂ "),
         );
 
+        let mut tasks = FuturesUnordered::new();
+
         for cube in &metadata.cubes {
-            // skip a cube that contains the word Error
             if cube.name.contains("Error") {
                 pb.set_message(format!("Skipping cube: {}", cube.name));
                 continue;
             }
-
             pb.set_message(format!("Processing cube: {}", cube.name));
 
-            if let Some(union) = process_cube(cube) {
+            let cube_name = cube.name.clone();
+            let cube_dimensions = cube.dimensions.clone();
+            let cube_measures = cube.measures.clone();
+
+            let task = task::spawn_blocking(move || {
+                let cube_cloned = Cube {
+                    name: cube_name,
+                    dimensions: cube_dimensions,
+                    measures: cube_measures,
+                };
+                process_cube(&cube_cloned) // This returns Option<CubeUnion>
+            });
+            tasks.push(task);
+        }
+
+        while let Some(result) = tasks.next().await {
+            if let Ok(Some(union)) = result {
                 for prefix in &config.prefixes {
-                    if prefix.name == cube.name {
+                    if metadata.cubes.iter().any(|c| c.name == prefix.name) {
                         let dimension_type_name = format!("{}Dimensions", prefix.prefix);
                         let measure_type_name = format!("{}Measures", prefix.prefix);
 
-                        _ = output.push('\n');
-                        _ = output.push_str(&format!(
+                        output.push('\n');
+                        output.push_str(&format!(
                             "export type {} = {}",
                             dimension_type_name, union.dimensions
                         ));
 
-                        _ = output.push('\n');
-                        _ = output.push_str(&format!(
+                        output.push('\n');
+                        output.push_str(&format!(
                             "export type {} = {}",
                             measure_type_name, union.measures
                         ));
-                        _ = output.push('\n');
+                        output.push('\n');
 
                         all_dimension_types
                             .extend(dimension_type_name.split(" | ").map(String::from));
                         all_measure_types.extend(measure_type_name.split(" | ").map(String::from));
+
                         pb.inc(1);
                     }
                 }
-            } else {
-                // handle the case where the union is empty though this shouldnt really happen
             }
         }
 
@@ -211,7 +228,6 @@ fn extract_to_union(fields: &[FieldSet]) -> String {
     items.into_iter().collect::<Vec<_>>().join(" | ")
 }
 
-#[tokio::main]
 async fn fetch_cube_metadata(cube_url: &str) -> Result<Metadata, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v1/meta", cube_url);
