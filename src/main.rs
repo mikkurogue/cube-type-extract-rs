@@ -46,6 +46,7 @@ fn main() {
             }
             return;
         }
+        // if no command then just follow general flow to execute generator
         None => {}
     }
 
