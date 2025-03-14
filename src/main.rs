@@ -36,7 +36,14 @@ fn main() {
             return;
         }
         Some(Commands::Remove { cube_name }) => {
-            println!("NYI: need to remove cube {}", cube_name);
+            match configuration::remove_from_config(cube_name) {
+                Ok(_) => {
+                    println!("Removed {} successfully!", cube_name)
+                }
+                Err(e) => {
+                    eprintln!("Failed to remove entry: {}", e);
+                }
+            }
             return;
         }
         None => {}

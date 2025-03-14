@@ -51,6 +51,39 @@ pub fn generate_default_config() {
     );
 }
 
+pub fn remove_from_config(cube: &str) -> Result<(), Error> {
+    if !validate_configuration() {
+        return Err(Error::new(
+            ErrorKind::Unsupported,
+            "Config not found or not supported",
+        ));
+    }
+
+    let file_path = "type-gen-config.json";
+
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let mut config: Configuration = from_reader(reader)
+        .map_err(|_| Error::new(ErrorKind::InvalidData, "Failed to parse config"))?;
+
+    if let Some(index) = config.prefixes.iter().position(|p| p.name == cube) {
+        config.prefixes.remove(index);
+    } else {
+        return Err(Error::new(ErrorKind::NotFound, "Cube not found in config"));
+    }
+
+    let file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(file_path)?;
+    let writer = BufWriter::new(file);
+
+    to_writer_pretty(writer, &config)?;
+
+    Ok(())
+}
+
 pub fn add_to_config(cube: &str, prefix: &str) -> Result<(), Error> {
     if !validate_configuration() {
         return Err(Error::new(
@@ -59,17 +92,14 @@ pub fn add_to_config(cube: &str, prefix: &str) -> Result<(), Error> {
         ));
     }
 
-    let file_path = "type-gen-config.json"; // Adjust path if necessary
+    let file_path = "type-gen-config.json";
 
-    // Open the config file
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
-    // Deserialize JSON
     let mut config: Configuration = from_reader(reader)
         .map_err(|_| Error::new(ErrorKind::InvalidData, "Failed to parse config"))?;
 
-    // New prefix entry
     let new_prefix = Prefix {
         name: cube.to_string(),
         prefix: prefix.to_string(),
@@ -90,7 +120,6 @@ pub fn add_to_config(cube: &str, prefix: &str) -> Result<(), Error> {
         .open(file_path)?;
     let writer = BufWriter::new(file);
 
-    // Serialize back to JSON
     to_writer_pretty(writer, &config)?;
 
     println!(
