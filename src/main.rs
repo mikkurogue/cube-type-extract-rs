@@ -13,10 +13,10 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Create a new cube with a prefix
+    /// Create a new cube with a prefix. Example `new "cube-01" "Main"`
     New { cube_name: String, prefix: String },
 
-    /// Delete an entry
+    /// Delete a cube prefix combination. Example `remove "cube-01" `
     Remove { cube_name: String },
 }
 
