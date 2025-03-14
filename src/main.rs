@@ -25,7 +25,14 @@ fn main() {
 
     match &cli.command {
         Some(Commands::New { cube_name, prefix }) => {
-            let _ = configuration::add_to_config(cube_name, prefix);
+            match configuration::add_to_config(cube_name, prefix) {
+                Ok(_) => {
+                    println!("Config updated successfully!");
+                }
+                Err(e) => {
+                    eprintln!("Failed to update config: {}", e);
+                }
+            }
             return;
         }
         Some(Commands::Remove { cube_name }) => {

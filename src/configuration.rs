@@ -15,7 +15,7 @@ pub struct Configuration {
     pub prefixes: Vec<Prefix>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Prefix {
     pub name: String,
     pub prefix: String,
@@ -69,13 +69,21 @@ pub fn add_to_config(cube: &str, prefix: &str) -> Result<(), Error> {
     let mut config: Configuration = from_reader(reader)
         .map_err(|_| Error::new(ErrorKind::InvalidData, "Failed to parse config"))?;
 
-    // Add new prefix entry
-    config.prefixes.push(Prefix {
+    // New prefix entry
+    let new_prefix = Prefix {
         name: cube.to_string(),
         prefix: prefix.to_string(),
-    });
+    };
 
-    // Open file for writing (truncate to overwrite)
+    if config.prefixes.iter().any(|p| *p == new_prefix) {
+        return Err(Error::new(
+            ErrorKind::AlreadyExists,
+            "Cube and Prefix combination already exists",
+        ));
+    }
+
+    config.prefixes.push(new_prefix);
+
     let file = OpenOptions::new()
         .write(true)
         .truncate(true)
