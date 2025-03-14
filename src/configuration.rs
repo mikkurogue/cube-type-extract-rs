@@ -1,5 +1,11 @@
+use std::{
+    fs::{File, OpenOptions},
+    io::{BufReader, BufWriter, Error, ErrorKind},
+};
+
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
+use serde_json::{from_reader, to_writer_pretty};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Configuration {
@@ -9,7 +15,7 @@ pub struct Configuration {
     pub prefixes: Vec<Prefix>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Prefix {
     pub name: String,
     pub prefix: String,
@@ -45,6 +51,85 @@ pub fn generate_default_config() {
     );
 }
 
+pub fn remove_from_config(cube: &str) -> Result<(), Error> {
+    if !validate_configuration() {
+        return Err(Error::new(
+            ErrorKind::Unsupported,
+            "Config not found or not supported",
+        ));
+    }
+
+    let file_path = "type-gen-config.json";
+
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let mut config: Configuration = from_reader(reader)
+        .map_err(|_| Error::new(ErrorKind::InvalidData, "Failed to parse config"))?;
+
+    if let Some(index) = config.prefixes.iter().position(|p| p.name == cube) {
+        config.prefixes.remove(index);
+    } else {
+        return Err(Error::new(ErrorKind::NotFound, "Cube not found in config"));
+    }
+
+    let file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(file_path)?;
+    let writer = BufWriter::new(file);
+
+    to_writer_pretty(writer, &config)?;
+
+    Ok(())
+}
+
+pub fn add_to_config(cube: &str, prefix: &str) -> Result<(), Error> {
+    if !validate_configuration() {
+        return Err(Error::new(
+            ErrorKind::Unsupported,
+            "Config not found or not supported",
+        ));
+    }
+
+    let file_path = "type-gen-config.json";
+
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let mut config: Configuration = from_reader(reader)
+        .map_err(|_| Error::new(ErrorKind::InvalidData, "Failed to parse config"))?;
+
+    let new_prefix = Prefix {
+        name: cube.to_string(),
+        prefix: prefix.to_string(),
+    };
+
+    if config.prefixes.iter().any(|p| *p == new_prefix) {
+        return Err(Error::new(
+            ErrorKind::AlreadyExists,
+            "Cube and Prefix combination already exists",
+        ));
+    }
+
+    config.prefixes.push(new_prefix);
+
+    let file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(file_path)?;
+    let writer = BufWriter::new(file);
+
+    to_writer_pretty(writer, &config)?;
+
+    println!(
+        "Added cube {} and mapped to prefix {} to the config.",
+        cube.to_string(),
+        prefix.to_string()
+    );
+
+    Ok(())
+}
 pub fn validate_configuration() -> bool {
     std::fs::metadata("type-gen-config.json").is_ok()
 }
