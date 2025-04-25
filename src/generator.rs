@@ -129,7 +129,7 @@ impl Generator {
                                 }
                             }
 
-                            if measure_count_types.is_empty() {
+                            if !measure_count_types.is_empty() {
                                 output.push('\n');
                                 output.push_str(&format!(
                                     "export type {} = {}",
@@ -168,7 +168,7 @@ impl Generator {
         output.push_str(&format!("// !! All measures counts for all cubes !!\n"));
 
         if config.enable_count_types {
-            if measure_count_types.is_empty() {
+            if !measure_count_types.is_empty() {
                 output.push_str(&format!(
                     "export type AllMeasureCounts = {}",
                     join_union_fields(measure_count_types)
