@@ -13,6 +13,7 @@ pub struct Configuration {
     pub output: String,
     pub file_name: String,
     pub prefixes: Vec<Prefix>,
+    pub enable_count_types: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -30,6 +31,7 @@ pub fn generate_default_config() {
             name: "Placeholder".to_string(),
             prefix: "Main".to_string(),
         }],
+        enable_count_types: true,
     };
 
     let json_data = match serde_json::to_string_pretty(&default_config) {
