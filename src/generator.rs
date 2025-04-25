@@ -121,15 +121,40 @@ impl Generator {
                             .extend(dimension_type_name.split(" | ").map(String::from));
                         all_measure_types.extend(measure_type_name.split(" | ").map(String::from));
 
-                        for dimension in union.dimensions.split(" | ") {
-                            if dimension.ends_with("Count'") {
-                                dimension_count_types.push(dimension.to_string());
-                            }
-                        }
+                        if config.enable_count_types {
+                            let dimension_counts = format!("{}CountDimensions", prefix.prefix);
+                            let measure_counts = format!("{}CountMeasures", prefix.prefix);
 
-                        for measure in union.measures.split(" | ") {
-                            if measure.ends_with("Count'") {
-                                measure_count_types.push(measure.to_string());
+                            for dimension in union.dimensions.split(" | ") {
+                                if dimension.ends_with("Count'") {
+                                    dimension_count_types.push(dimension.to_string());
+                                }
+                            }
+
+                            for measure in union.measures.split(" | ") {
+                                if measure.ends_with("Count'") {
+                                    measure_count_types.push(measure.to_string());
+                                }
+                            }
+
+                            if dimension_count_types.len() != 0 {
+                                _ = output.push('\n');
+                                _ = output.push_str(&format!(
+                                    "export type {} = {}",
+                                    dimension_counts,
+                                    dimension_count_types.join(" | ")
+                                ));
+                                _ = output.push('\n');
+                            }
+
+                            if measure_count_types.len() != 0 {
+                                _ = output.push('\n');
+                                _ = output.push_str(&format!(
+                                    "export type {} = {}",
+                                    measure_counts,
+                                    measure_count_types.join(" | ")
+                                ));
+                                _ = output.push('\n');
                             }
                         }
 
@@ -157,6 +182,27 @@ impl Generator {
             join_union_fields(all_measure_types)
         ));
         _ = output.push('\n');
+        _ = output.push('\n');
+        _ = output.push_str(&format!(
+            "// !! All dimensions and measures counts for all cubes !!\n"
+        ));
+        if config.enable_count_types {
+            if measure_count_types.len() != 0 {
+                _ = output.push_str(&format!(
+                    "export type AllMeasureCounts = {}",
+                    join_union_fields(measure_count_types)
+                ));
+                _ = output.push('\n');
+            }
+
+            if dimension_count_types.len() != 0 {
+                _ = output.push_str(&format!(
+                    "export type AllDimensionCounts= {}",
+                    join_union_fields(dimension_count_types)
+                ));
+                _ = output.push('\n');
+            }
+        }
 
         _ = write_to_file(&output_dir, &file_name, &output);
 
