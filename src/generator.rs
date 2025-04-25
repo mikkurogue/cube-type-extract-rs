@@ -165,14 +165,12 @@ impl Generator {
         output.push('\n');
         output.push_str("// !! All measures counts for all cubes !!\n");
 
-        if config.enable_count_types {
-            if !measure_count_types.is_empty() {
-                output.push_str(&format!(
-                    "export type AllMeasureCounts = {}",
-                    join_union_fields(measure_count_types)
-                ));
-                output.push('\n');
-            }
+        if config.enable_count_types && !measure_count_types.is_empty() {
+            output.push_str(&format!(
+                "export type AllMeasureCounts = {}",
+                join_union_fields(measure_count_types)
+            ));
+            output.push('\n');
         }
 
         _ = write_to_file(&output_dir, &file_name, &output);
