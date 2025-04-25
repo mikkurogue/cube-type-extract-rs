@@ -149,9 +149,7 @@ impl Generator {
         }
 
         output.push('\n');
-        output.push_str(&format!(
-            "// !! All dimensions and measures for all cubes !!\n"
-        ));
+        output.push_str("// !! All dimensions and measures for all cubes !!\n");
 
         output.push_str(&format!(
             "export type AllDimensions = {}",
@@ -165,7 +163,7 @@ impl Generator {
         ));
         output.push('\n');
         output.push('\n');
-        output.push_str(&format!("// !! All measures counts for all cubes !!\n"));
+        output.push_str("// !! All measures counts for all cubes !!\n");
 
         if config.enable_count_types {
             if !measure_count_types.is_empty() {
