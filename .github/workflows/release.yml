@@ -4,13 +4,32 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  create_release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create.outputs.upload_url }}
+    steps:
+      - name: Create GitHub Release
+        id: create
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
   build:
-    name: Build and Release
+    name: Build and Upload (${{ matrix.arch }})
+    needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -45,7 +64,6 @@ jobs:
         run: |
           mkdir -p artifacts
 
-          # Determine binary name (Windows needs .exe, Linux/mac no)
           BIN_NAME="cube-type-extract-rs"
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             BIN_NAME="${BIN_NAME}.exe"
@@ -53,19 +71,15 @@ jobs:
 
           cp target/${{ matrix.target }}/release/$BIN_NAME artifacts/
 
-          # Archive it
           if [[ "${{ matrix.ext }}" == "zip" ]]; then
             cd artifacts && zip cube-type-extract-rs-${{ matrix.arch }}.zip $BIN_NAME && rm $BIN_NAME && cd ..
           else
             cd artifacts && tar -czvf cube-type-extract-rs-${{ matrix.arch }}.tar.gz $BIN_NAME && rm $BIN_NAME && cd ..
           fi
 
-      - name: Upload Release Asset
+      - name: Upload artifact to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ github.ref }}
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: ${{ contains(github.ref, '-a') || contains(github.ref, '-b') || contains(github.ref, '-rc') }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           files: artifacts/*
