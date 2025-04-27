@@ -11,7 +11,22 @@ permissions:
 jobs:
   build:
     name: Build and Release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            arch: linux-x86_64
+            ext: tar.gz
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            arch: macos-x86_64
+            ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            arch: windows-x86_64
+            ext: zip
 
     steps:
       - name: Checkout repository
@@ -19,19 +34,33 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Build project
-        run: cargo build --release
+        run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Archive binary
+      - name: Prepare artifact
+        shell: bash
         run: |
           mkdir -p artifacts
-          cp target/release/cube-type-extract-rs artifacts/
-          tar -czvf artifacts/cube-type-extract-rs-linux.tar.gz -C artifacts cube-type-extract-rs
-          rm artifacts/cube-type-extract-rs
 
-      - name: Create GitHub Release
-        id: create_release
+          # Determine binary name (Windows needs .exe, Linux/mac no)
+          BIN_NAME="cube-type-extract-rs"
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            BIN_NAME="${BIN_NAME}.exe"
+          fi
+
+          cp target/${{ matrix.target }}/release/$BIN_NAME artifacts/
+
+          # Archive it
+          if [[ "${{ matrix.ext }}" == "zip" ]]; then
+            cd artifacts && zip cube-type-extract-rs-${{ matrix.arch }}.zip $BIN_NAME && rm $BIN_NAME && cd ..
+          else
+            cd artifacts && tar -czvf cube-type-extract-rs-${{ matrix.arch }}.tar.gz $BIN_NAME && rm $BIN_NAME && cd ..
+          fi
+
+      - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,4 +68,4 @@ jobs:
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
-          files: artifacts/*.tar.gz
+          files: artifacts/*
