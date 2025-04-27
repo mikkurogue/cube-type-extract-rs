@@ -38,10 +38,17 @@ jobs:
             target: x86_64-unknown-linux-gnu
             arch: linux-x86_64
             ext: tar.gz
+
           - os: macos-latest
             target: x86_64-apple-darwin
             arch: macos-x86_64
             ext: tar.gz
+
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            arch: macos-arm64
+            ext: tar.gz
+
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             arch: windows-x86_64
