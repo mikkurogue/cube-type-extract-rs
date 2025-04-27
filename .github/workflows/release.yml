@@ -67,5 +67,5 @@ jobs:
           tag_name: ${{ github.ref }}
           name: Release ${{ github.ref_name }}
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref, '-a') || contains(github.ref, '-b') || contains(github.ref, '-rc') }}
           files: artifacts/*
