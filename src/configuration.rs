@@ -9,7 +9,8 @@ use serde_json::{from_reader, to_writer_pretty};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Configuration {
-    pub cube_url: String,
+    pub cube_url: Option<String>,
+    pub static_cube_file: Option<String>,
     pub output: String,
     pub file_name: String,
     pub prefixes: Vec<Prefix>,
@@ -24,7 +25,8 @@ pub struct Prefix {
 
 pub fn generate_default_config() {
     let default_config = Configuration {
-        cube_url: "http://localhost:4000/cubejs-api".to_string(),
+        cube_url: Some("http://localhost:4000/cubejs-api".to_string()),
+        static_cube_file: None,
         output: "./".to_string(),
         file_name: "cubejs-types".to_string(),
         prefixes: vec![Prefix {

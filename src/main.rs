@@ -69,7 +69,7 @@ fn main() {
         }
     };
 
-    let _ = generator.fetch_metadata(config.cube_url);
+    let _ = generator.fetch_metadata(&config);
 
     generator.generate(config.output, config.file_name, true);
 }

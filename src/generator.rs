@@ -1,10 +1,18 @@
 use colored::Colorize;
+use home::home_dir;
 use indicatif::{ProgressBar, ProgressStyle};
+use regex::Regex;
 use serde::Deserialize;
 
-use std::{borrow::Cow, collections::HashSet, str};
+use std::{
+    borrow::Cow,
+    collections::HashSet,
+    fs,
+    path::{Path, PathBuf},
+    str,
+};
 
-use crate::configuration;
+use crate::configuration::{self, Configuration};
 
 pub struct Generator {
     pub cube_count: usize,
@@ -35,17 +43,41 @@ pub struct FieldSet {
 }
 
 impl Generator {
-    pub fn fetch_metadata(&mut self, cube_url: String) {
-        let resp = match fetch_cube_metadata(&cube_url) {
-            Ok(resp) => resp,
-            Err(err) => {
-                eprintln!("{} {}", "Error: could not fetch cube metadata: ".red(), err);
-                std::process::exit(0);
+    pub fn fetch_metadata(&mut self, config: &Configuration) {
+        if let Some(cube_url) = &config.cube_url {
+            match fetch_cube_metadata(&cube_url) {
+                Ok(resp) => {
+                    self.cube_count = resp.cubes.len();
+                    self.metadata = Some(resp);
+                }
+                Err(err) => {
+                    eprintln!("{} {}", "Error: could not fetch cube metadata: ".red(), err);
+                    std::process::exit(1);
+                }
             }
-        };
-
-        self.cube_count = resp.cubes.len();
-        self.metadata = Some(resp);
+        } else if let Some(static_file) = &config.static_cube_file {
+            let static_file_path = expand_tilde(&static_file);
+            match load_metadata_from_file(&static_file_path.to_str().unwrap()) {
+                Ok(resp) => {
+                    self.cube_count = resp.cubes.len();
+                    self.metadata = Some(resp);
+                }
+                Err(err) => {
+                    eprintln!(
+                        "{} {}",
+                        "Error: could not load static cube metadata: ".red(),
+                        err
+                    );
+                    std::process::exit(1);
+                }
+            }
+        } else {
+            eprintln!(
+                "{}",
+                "Error: No cube_url or static_cube_file provided in config".red()
+            );
+            std::process::exit(1);
+        }
     }
 
     pub fn generate(&self, output_dir: String, file_name: String, _skip_errors: bool) {
@@ -262,6 +294,30 @@ async fn fetch_cube_metadata(cube_url: &str) -> Result<Metadata, Box<dyn std::er
     Ok(metadata)
 }
 
+fn load_metadata_from_file<P: AsRef<Path>>(
+    path: P,
+) -> Result<Metadata, Box<dyn std::error::Error>> {
+    let contents = fs::read_to_string(path)?;
+
+    // Strip JS-style comment lines
+    let lines = contents
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Match: export const staticCubesData = [ ... ];
+    let re = Regex::new(r#"(?s)export\s+const\s+staticCubesData\s*=\s*(\[.*\]);"#)?;
+    let captures = re
+        .captures(&lines)
+        .ok_or("Could not extract JSON array from static file")?;
+
+    let json_array_str = &captures[1];
+
+    // Parse into Vec<Cube>
+    let cubes: Vec<Cube> = serde_json::from_str(json_array_str)?;
+    Ok(Metadata { cubes })
+}
 fn extract_name(full_name: &str) -> Cow<str> {
     full_name
         .rsplit_once('.')
@@ -275,4 +331,12 @@ where
 {
     let unique: HashSet<_> = items.into_iter().collect();
     unique.into_iter().collect::<Vec<_>>().join(" | ")
+}
+fn expand_tilde(path: &str) -> PathBuf {
+    if let Some(stripped) = path.strip_prefix("~") {
+        if let Some(home) = home_dir() {
+            return home.join(stripped.strip_prefix('/').unwrap_or(stripped));
+        }
+    }
+    PathBuf::from(path)
 }

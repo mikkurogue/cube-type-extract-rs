@@ -12,3 +12,5 @@ reqwest = {version = "0.12.15", features = ["json", "blocking"]}
 tokio = {version = "1", features = ["full"]}
 indicatif = "0.17.11"
 clap = { version = "4.5.32", features = ["derive"] }
+home = "0.5.11"
+regex = "1.11.1"
