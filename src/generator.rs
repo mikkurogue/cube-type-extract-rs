@@ -238,7 +238,9 @@ fn extract_to_union(fields: &[FieldSet]) -> String {
         })
         .collect::<HashSet<_>>(); // Avoid duplicate field names
 
-    items.into_iter().collect::<Vec<_>>().join(" | ")
+    let mut items_vec: Vec<_> = items.into_iter().collect();
+    items_vec.sort();
+    items_vec.join(" | ")
 }
 
 #[tokio::main]
@@ -274,5 +276,7 @@ where
     I: IntoIterator<Item = String>,
 {
     let unique: HashSet<_> = items.into_iter().collect();
-    unique.into_iter().collect::<Vec<_>>().join(" | ")
+    let mut unique_vec: Vec<_> = unique.into_iter().collect();
+    unique_vec.sort();
+    unique_vec.join(" | ")
 }
