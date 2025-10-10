@@ -7,13 +7,66 @@ The reason for this rewrite is not because of the meme, but because it's a relat
 
 This project will essentially be a 1 to 1 copy so the configuration, commands and everything else should all be the same.
 
-## Initial benchmark results
+## Configuration
 
-![results](./assets/results.png)
+To get started run the following command:
 
-As we can see from the results. The Rust version is around 37.5 times faster than the Go version
-Benchmark 1 is the Rust version, Benchmark 2 is the Go version.
+```bash
+cube-type-extract-rs --init
+```
 
-### Caveat
+This will create a `type-gen-config.json` file with the following content:
 
-Eventually, I will also create a Zig rewrite of this to compare all 3 binaries, not because its supposed to create a dick measuring contest for the communities of each respective language but simply because I want to see if what I wrote is at all comparable to each other given I am new to Rust in ints entirety and Zig I am at best an advanced beginner.
+```json
+{
+  "cube_url": "http://localhost:4000/cubejs-api",
+  "output": "./",
+  "file_name": "cubejs-types",
+  "prefixes": [
+    {
+      "name": "Placeholder",
+      "prefix": "Main"
+    }
+  ],
+  "enable_count_types": true,
+  "enable_check_existence_fields": true
+}
+```
+
+### Options
+
+- `cube_url`: The URL of your Cube.js API. Defaults to `http://localhost:4000/cubejs-api`.
+- `output`: The output directory for the generated types. Defaults to `./`.
+- `file_name`: The name of the generated file. Defaults to `cubejs-types`.
+- `prefixes`: A list of prefixes to use for the generated types. This is useful if you have multiple cubes with the same name.
+  - `name`: The name of the cube.
+  - `prefix`: The prefix to use for the generated types.
+- `enable_count_types`: Whether to generate types for the `count` field. Defaults to `true`.
+- `enable_check_existence_fields`: Whether to generate types for the `check existence` fields. Defaults to `true`.
+
+## Commands
+
+### New
+
+To add a new cube to the configuration, you can use the `new` command. This is useful when you want to add a new cube without manually editing the configuration file.
+
+```bash
+cube-type-extract-rs new <cube_name> <prefix>
+```
+
+- `<cube_name>`: The name of the cube you want to add.
+- `<prefix>`: The prefix you want to assign to the cube.
+
+### Remove
+
+To remove a cube from the configuration, you can use the `remove` command. This is useful when you want to remove a cube without manually editing the configuration file.
+
+```bash
+cube-type-extract-rs remove <cube_name>
+```
+
+- `<cube_name>`: The name of the cube you want to remove.
+
+## Benchmarks
+
+For benchmark results, please see the [benchmark file](./bench.md).
