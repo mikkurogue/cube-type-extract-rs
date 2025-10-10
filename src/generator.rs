@@ -218,8 +218,10 @@ fn write_existence_types(
 ) {
     let dimension_data_existence = format!("{}HasData", prefix);
 
-    for dimension in union.dimensions.split(" | ") {
-        let existence_field = format!("'{}Exists'", dimension.trim_matches('\''));
+    for measure in union.measures.split(" |  ") {
+        let existence_field = format!("'{}hasData'", measure.trim_matches('\''));
+
+        println!("Existence field: {}", existence_field);
         dimension_data_existence_types.push(existence_field);
     }
 
