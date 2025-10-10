@@ -14,25 +14,33 @@ pub struct Configuration {
     pub file_name: String,
     pub prefixes: Vec<Prefix>,
     pub enable_count_types: bool,
+    pub enable_check_existence_fields: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct Prefix {
     pub name: String,
     pub prefix: String,
 }
 
+impl Default for Configuration {
+    fn default() -> Self {
+        Configuration {
+            cube_url: "http://localhost:4000/cubejs-api".to_string(),
+            output: "./".to_string(),
+            file_name: "cubejs-types".to_string(),
+            prefixes: vec![Prefix {
+                name: "Placeholder".to_string(),
+                prefix: "Main".to_string(),
+            }],
+            enable_count_types: true,
+            enable_check_existence_fields: true,
+        }
+    }
+}
+
 pub fn generate_default_config() {
-    let default_config = Configuration {
-        cube_url: "http://localhost:4000/cubejs-api".to_string(),
-        output: "./".to_string(),
-        file_name: "cubejs-types".to_string(),
-        prefixes: vec![Prefix {
-            name: "Placeholder".to_string(),
-            prefix: "Main".to_string(),
-        }],
-        enable_count_types: true,
-    };
+    let default_config = Configuration::default();
 
     let json_data = match serde_json::to_string_pretty(&default_config) {
         Ok(json) => json,
