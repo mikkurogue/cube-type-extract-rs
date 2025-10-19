@@ -19,7 +19,12 @@ This will create a `type-gen-config.json` file with the following content:
 
 ```json
 {
-  "cube_url": "http://localhost:4000/cubejs-api",
+  "url": {
+    "link": "http://localhost:4000/cubejs-api",
+    "headers": {
+      "Authorization": "Bearer your-token-here"
+    }
+  },
   "output": "./",
   "file_name": "cubejs-types",
   "prefixes": [
@@ -35,7 +40,9 @@ This will create a `type-gen-config.json` file with the following content:
 
 ### Options
 
-- `cube_url`: The URL of your Cube.js API. Defaults to `http://localhost:4000/cubejs-api`.
+- `url`: Configuration for the Cube.js API endpoint.
+  - `link`: The URL of your Cube.js API. Defaults to `http://localhost:4000/cubejs-api`.
+  - `headers`: **(Optional)** Custom HTTP headers to include in the request. Useful for authentication or API keys. Can be omitted if no headers are needed.
 - `output`: The output directory for the generated types. Defaults to `./`.
 - `file_name`: The name of the generated file. Defaults to `cubejs-types`.
 - `prefixes`: A list of prefixes to use for the generated types. This is useful if you have multiple cubes with the same name.
@@ -43,6 +50,8 @@ This will create a `type-gen-config.json` file with the following content:
   - `prefix`: The prefix to use for the generated types.
 - `enable_count_types`: Whether to generate types for the `count` field. Defaults to `true`.
 - `enable_check_existence_fields`: Whether to generate types for the `check existence` fields. Defaults to `true`.
+
+**Note:** The `headers` field is optional and can be completely omitted from the configuration if your API doesn't require custom headers. Header values can be strings, numbers, or booleans.
 
 ## Commands
 
