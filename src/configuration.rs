@@ -5,11 +5,17 @@ use std::{
 
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
-use serde_json::{from_reader, to_writer_pretty};
+use serde_json::{Map, Value, from_reader, to_writer_pretty};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Url {
+    pub link: String,
+    pub headers: Option<Map<String, Value>>,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Configuration {
-    pub cube_url: String,
+    pub url: Url,
     pub output: String,
     pub file_name: String,
     pub prefixes: Vec<Prefix>,
@@ -26,7 +32,10 @@ pub struct Prefix {
 impl Default for Configuration {
     fn default() -> Self {
         Configuration {
-            cube_url: "http://localhost:4000/cubejs-api".to_string(),
+            url: Url {
+                link: "http://localhost:4000/cubejs-api".to_string(),
+                headers: None,
+            },
             output: "./".to_string(),
             file_name: "cubejs-types".to_string(),
             prefixes: vec![Prefix {

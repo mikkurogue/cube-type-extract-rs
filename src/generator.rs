@@ -1,6 +1,8 @@
 use colored::Colorize;
 use indicatif::{ProgressBar, ProgressStyle};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde::Deserialize;
+use serde_json::{Map, Value};
 
 use std::{borrow::Cow, collections::HashSet, str};
 
@@ -35,8 +37,8 @@ pub struct FieldSet {
 }
 
 impl Generator {
-    pub fn fetch_metadata(&mut self, cube_url: String) {
-        let resp = match fetch_cube_metadata(&cube_url) {
+    pub fn fetch_metadata(&mut self, cube_url: String, headers: Option<Map<String, Value>>) {
+        let resp = match fetch_cube_metadata(&cube_url, headers) {
             Ok(resp) => resp,
             Err(err) => {
                 eprintln!("{} {}", "Error: could not fetch cube metadata: ".red(), err);
@@ -323,13 +325,42 @@ fn extract_to_union(fields: &[FieldSet]) -> String {
     items.into_iter().collect::<Vec<_>>().join(" | ")
 }
 
+fn convert_headers_to_headermap(
+    headers: Option<Map<String, Value>>,
+) -> Result<HeaderMap, Box<dyn std::error::Error>> {
+    let mut header_map = HeaderMap::new();
+
+    if let Some(headers) = headers {
+        for (key, value) in headers {
+            let header_name = HeaderName::from_bytes(key.as_bytes())?;
+            let header_value = match value {
+                Value::String(s) => HeaderValue::from_str(&s)?,
+                Value::Number(n) => HeaderValue::from_str(&n.to_string())?,
+                Value::Bool(b) => HeaderValue::from_str(&b.to_string())?,
+                _ => {
+                    return Err(format!("Unsupported header value type for key: {}", key).into());
+                }
+            };
+            header_map.insert(header_name, header_value);
+        }
+    }
+
+    Ok(header_map)
+}
+
 #[tokio::main]
-async fn fetch_cube_metadata(cube_url: &str) -> Result<Metadata, Box<dyn std::error::Error>> {
+async fn fetch_cube_metadata(
+    cube_url: &str,
+    headers: Option<Map<String, Value>>,
+) -> Result<Metadata, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let url = format!("{}/v1/meta", cube_url);
 
+    let header_map = convert_headers_to_headermap(headers)?;
+
     let body = client
         .get(&url)
+        .headers(header_map)
         .send()
         .await?
         .error_for_status()? // check for http errors
@@ -358,4 +389,3 @@ where
     let unique: HashSet<_> = items.into_iter().collect();
     unique.into_iter().collect::<Vec<_>>().join(" | ")
 }
-
